@@ -34,6 +34,10 @@ const User = mongoose.model(
   })
 );
 
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/inicio.html"); // Cambia la ruta según la ubicación de tu archivo inicio.html
+});
+
 // Ruta para manejar las solicitudes del formulario
 app.post("/request-book", async (req, res) => {
   const { name, email } = req.body;
