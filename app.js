@@ -21,6 +21,11 @@ connectToDatabase();
 app.use("/", userRoutes);
 
 // Iniciar el servidor
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+// Definir tus rutas y middleware aquí
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 module.exports = app;
