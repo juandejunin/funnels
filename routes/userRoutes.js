@@ -103,13 +103,154 @@ const nodemailer = require("nodemailer");
 const User = require("../models/User");
 
 // Función para manejar la lógica de registro
+// async function handleRegistrationRequest(userData) {
+//   try {
+//     // Verificar si el correo ya existe en la base de datos
+//     const existingUser = await User.findOne({ email: userData.email });
+
+//     if (existingUser) {
+//       // Si el correo existe, enviar opciones al usuario
+//       const transporter = nodemailer.createTransport({
+//         service: "Gmail",
+//         auth: {
+//           user: process.env.EMAIL_USER,
+//           pass: process.env.EMAIL_PASS,
+//         },
+//       });
+
+//       const mailOptions = {
+//         from: process.env.EMAIL_USER,
+//         to: userData.email,
+//         subject: "Correo Existente - Actualiza tu Información",
+//         text: `Hola ${existingUser.name},
+
+//         Hemos detectado que ya estás registrado con este correo. Puedes:
+        
+//         1. **Actualizar tu nombre a "${userData.name}"** y continuar con la solicitud del material.
+//         2. **Mantener el nombre actual "${existingUser.name}"** y recibir el material solicitado sin cambiar tus datos.
+
+//         Por favor, responde a este correo con "Cambiar nombre" o "Mantener nombre" para proceder con tu solicitud.`,
+//       };
+
+//       await transporter.sendMail(mailOptions);
+
+//       // Esperar una respuesta (aquí necesitarías implementar un mecanismo para escuchar la respuesta)
+//       // Suponemos que la respuesta es procesada de alguna forma
+
+//       // Lógica para manejar la respuesta del usuario, por ejemplo, usando un webhook o API
+//       const userResponse = await listenForUserResponse(); // Esta función es hipotética
+
+//       if (userResponse === 'Cambiar nombre') {
+//         // Si el usuario decide cambiar el nombre, actualizar en la base de datos
+//         existingUser.name = userData.name;
+//         await existingUser.save();
+//       }
+
+//       // Enviar el material solicitado (sin importar si cambió o no el nombre)
+//       await sendMaterialToUser(existingUser.email);
+
+//     } else {
+//       // Si el correo no existe, crear un nuevo usuario y proceder
+//       const token = jwt.sign({ email: userData.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+//       const newUser = new User({ name: userData.name, email: userData.email, verificationToken: token });
+//       await newUser.save();
+
+//       const transporter = nodemailer.createTransport({
+//         service: "Gmail",
+//         auth: {
+//           user: process.env.EMAIL_USER,
+//           pass: process.env.EMAIL_PASS,
+//         },
+//       });
+
+//       const verificationLink = `http://localhost:${process.env.PORT}/verify-email?token=${token}`;
+
+//       const mailOptions = {
+//         from: process.env.EMAIL_USER,
+//         to: userData.email,
+//         subject: "Verifica tu correo para recibir el libro gratuito",
+//         text: `Por favor, haz clic en el siguiente enlace para verificar tu correo: ${verificationLink}`,
+//       };
+
+//       await transporter.sendMail(mailOptions);
+//       res.redirect("/verify-email.html");
+//     }
+//   } catch (error) {
+//     console.error("Error en el registro del usuario:", error.message);
+//   }
+// }
+// async function handleRegistrationRequest(userData) {
+//   try {
+//     // Verificar si el correo ya existe en la base de datos
+//     const existingUser = await User.findOne({ email: userData.email });
+
+//     if (existingUser) {
+//       // Si el correo existe, enviar opciones al usuario con enlaces
+//       const transporter = nodemailer.createTransport({
+//         service: "Gmail",
+//         auth: {
+//           user: process.env.EMAIL_USER,
+//           pass: process.env.EMAIL_PASS,
+//         },
+//       });
+
+//       // Crear los enlaces con un token de acción para la respuesta
+//       const maintainLink = `http://localhost:${process.env.PORT}/update-name?email=${userData.email}&action=maintain`;
+//       const changeLink = `http://localhost:${process.env.PORT}/update-name?email=${userData.email}&action=change&newName=${userData.name}`;
+
+//       const mailOptions = {
+//         from: process.env.EMAIL_USER,
+//         to: userData.email,
+//         subject: "Correo Existente - Actualiza tu Información",
+//         text: `Hola ${existingUser.name},
+
+// Hemos detectado que ya estás registrado con este correo. Puedes elegir una de las siguientes opciones:
+
+// 1. **Mantener tu nombre actual "${existingUser.name}" y continuar con la solicitud del material.** [Mantener nombre]( ${maintainLink} )
+// 2. **Actualizar tu nombre a "${userData.name}" y continuar con la solicitud del material.** [Cambiar nombre]( ${changeLink} )
+
+// Por favor, haz clic en el enlace correspondiente para proceder con tu solicitud.`,
+//       };
+
+//       await transporter.sendMail(mailOptions);
+//       return;  // Ya se ha enviado el correo, no es necesario continuar
+//     } else {
+//       // Si el correo no existe, crear un nuevo usuario y proceder
+//       const token = jwt.sign({ email: userData.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+//       const newUser = new User({ name: userData.name, email: userData.email, verificationToken: token });
+//       await newUser.save();
+
+//       const transporter = nodemailer.createTransport({
+//         service: "Gmail",
+//         auth: {
+//           user: process.env.EMAIL_USER,
+//           pass: process.env.EMAIL_PASS,
+//         },
+//       });
+
+//       const verificationLink = `http://localhost:${process.env.PORT}/verify-email?token=${token}`;
+
+//       const mailOptions = {
+//         from: process.env.EMAIL_USER,
+//         to: userData.email,
+//         subject: "Verifica tu correo para recibir el libro gratuito",
+//         text: `Por favor, haz clic en el siguiente enlace para verificar tu correo: ${verificationLink}`,
+//       };
+
+//       await transporter.sendMail(mailOptions);
+//     }
+//   } catch (error) {
+//     console.error("Error en el registro del usuario:", error.message);
+//   }
+// }
+
 async function handleRegistrationRequest(userData) {
   try {
     // Verificar si el correo ya existe en la base de datos
     const existingUser = await User.findOne({ email: userData.email });
 
     if (existingUser) {
-      // Si el correo existe, enviar opciones al usuario
+      // Si el correo existe, enviar opciones al usuario con enlaces
       const transporter = nodemailer.createTransport({
         service: "Gmail",
         auth: {
@@ -118,37 +259,31 @@ async function handleRegistrationRequest(userData) {
         },
       });
 
+      // Crear los enlaces con la palabra "prueba"
+      // const maintainLink = `http://localhost:${process.env.PORT}/update-name?word=prueba`;
+      // const changeLink = `http://localhost:${process.env.PORT}/update-name?word=prueba`;
+
+
+       // Crear los enlaces con un token de acción para la respuesta
+      const maintainLink = `http://localhost:${process.env.PORT}/update-name?email=${userData.email}&action=maintain`;
+      const changeLink = `http://localhost:${process.env.PORT}/update-name?email=${userData.email}&action=change&newName=${userData.name}`;
+
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: userData.email,
         subject: "Correo Existente - Actualiza tu Información",
         text: `Hola ${existingUser.name},
 
-        Hemos detectado que ya estás registrado con este correo. Puedes:
-        
-        1. **Actualizar tu nombre a "${userData.name}"** y continuar con la solicitud del material.
-        2. **Mantener el nombre actual "${existingUser.name}"** y recibir el material solicitado sin cambiar tus datos.
+Hemos detectado que ya estás registrado con este correo. Puedes elegir una de las siguientes opciones:
 
-        Por favor, responde a este correo con "Cambiar nombre" o "Mantener nombre" para proceder con tu solicitud.`,
+1. **Mantener tu nombre actual "${existingUser.name}" y continuar con la solicitud del material.** [Mantener nombre]( ${maintainLink} )
+2. **Actualizar tu nombre a "${userData.name}" y continuar con la solicitud del material.** [Cambiar nombre]( ${changeLink} )
+
+Por favor, haz clic en el enlace correspondiente para proceder con tu solicitud.`,
       };
 
       await transporter.sendMail(mailOptions);
-
-      // Esperar una respuesta (aquí necesitarías implementar un mecanismo para escuchar la respuesta)
-      // Suponemos que la respuesta es procesada de alguna forma
-
-      // Lógica para manejar la respuesta del usuario, por ejemplo, usando un webhook o API
-      const userResponse = await listenForUserResponse(); // Esta función es hipotética
-
-      if (userResponse === 'Cambiar nombre') {
-        // Si el usuario decide cambiar el nombre, actualizar en la base de datos
-        existingUser.name = userData.name;
-        await existingUser.save();
-      }
-
-      // Enviar el material solicitado (sin importar si cambió o no el nombre)
-      await sendMaterialToUser(existingUser.email);
-
+      return;  // Ya se ha enviado el correo, no es necesario continuar
     } else {
       // Si el correo no existe, crear un nuevo usuario y proceder
       const token = jwt.sign({ email: userData.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -173,12 +308,140 @@ async function handleRegistrationRequest(userData) {
       };
 
       await transporter.sendMail(mailOptions);
-      res.redirect("/verify-email.html");
     }
   } catch (error) {
     console.error("Error en el registro del usuario:", error.message);
   }
 }
+
+
+
+// Ruta para manejar la actualización de nombre
+// router.get("/update-name", async (req, res) => {
+//   const { email, action, newName } = req.query;
+//   console.log(req.query)
+
+//   if (!email || !action) {
+//     return res.status(400).json({ message: "Invalid request" });
+//   }
+
+//   try {
+//     const user = await User.findOne({email});
+//     console.log(user)
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     if (action === "maintain") {
+//       // Si el usuario eligió mantener el nombre, simplemente redirige a la descarga
+//       return res.redirect("/download-book");
+//     }
+
+//     if (action === "change" && newName) {
+//       // Si el usuario eligió cambiar el nombre, actualiza el nombre
+//       user.name = newName;
+//       await user.save();
+
+//       return res.redirect("/download-book");
+//     }
+
+//     return res.status(400).json({ message: "Invalid action" });
+//   } catch (error) {
+//     console.error("Error al procesar la actualización del nombre:", error.message);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
+
+router.get("/update-name", async (req, res) => {
+  const { email, action } = req.query; // Recuperamos los parámetros 'email' y 'action' de la URL
+
+  console.log("Correo recibido:", email);
+  console.log("Acción recibida:", action);
+
+  try {
+    // Verificar que el correo esté en la base de datos
+    const user = await User.findOne({ email });
+
+    // Verificar si el usuario fue encontrado
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Verificar la acción recibida
+    if (action === 'maintain') {
+      // Si la acción es 'maintain', enviamos un mensaje de confirmación
+      res.json({ message: `Nombre actual: ${user.name}. Se mantiene el nombre y continúa con la solicitud del material.` });
+    } else if (action === 'change') {
+      // Si la acción es 'change', aquí podrías implementar la lógica para cambiar el nombre
+      res.json({ message: "Nombre cambiado exitosamente." });
+    } else {
+      res.status(400).json({ message: "Acción no válida" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al procesar la solicitud" });
+  }
+});
+
+module.exports = router;
+
+// router.get("/update-name", async (req, res) => {
+//   const { word } = req.query; // Recuperamos el parámetro 'word' de la URL
+// console.log(req.query)
+//   if (word === 'prueba') {
+//     // Si la palabra es 'prueba', respondemos con un mensaje
+//     res.json({ message: "La palabra 'prueba' fue recibida correctamente." });
+//   } else {
+//     // Si la palabra no es 'prueba', respondemos con un mensaje de error
+//     res.status(400).json({ message: "Palabra no válida" });
+//   }
+// });
+
+
+
+// Ruta para la descarga del libro
+router.get("/download-book", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.query.email });
+
+
+    console.log("Correo recibido:", req.query );
+
+    console.log(user)
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: "Tu libro gratuito PDF",
+      text: "Gracias por verificar tu correo. ¡Aquí está tu libro en PDF!",
+      attachments: [
+        {
+          filename: "book.pdf",
+          path: "./teoria.pdf",
+        },
+      ],
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: "Libro enviado al correo del usuario" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al enviar el libro" });
+  }
+});
+ 
+
 
 // Ruta para manejar las solicitudes del formulario
 router.post("/request-book", async (req, res) => {
