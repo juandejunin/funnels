@@ -6,7 +6,7 @@ describe('Database Connection', () => {
   beforeAll(async () => {
     // Usamos `mongoose.connect` para intentar conectar a la base de datos
     try {
-      await mongoose.connect(process.env.MONGODB_URI, {
+      await mongoose.connect(process.env.MONGODB_URI_TEST, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       });
@@ -69,6 +69,7 @@ describe('Database Connection', () => {
 //   });
 
   afterAll(async () => {
+    await User.deleteMany({}); // Limpia todos los documentos de la colección `User`
     await mongoose.disconnect();
   });
 });
