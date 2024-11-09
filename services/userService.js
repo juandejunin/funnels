@@ -2,14 +2,14 @@ const User = require("../models/user");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
-// Función para manejar el registro
+// Lógica para manejar el registro de un usuario
 async function handleRegistrationRequest(userData) {
   try {
     const existingUser = await User.findOne({ email: userData.email });
 
     if (existingUser) {
       await sendEmailWithOptions(existingUser, userData);
-      return;
+      return; // Si el usuario ya existe, sale de la función
     }
 
     // Crear un nuevo usuario si no existe
@@ -29,11 +29,11 @@ async function handleRegistrationRequest(userData) {
     await sendVerificationEmail(userData.email, token);
 
   } catch (error) {
-    console.error("Error al registrar usuario:", error.message);
+    throw new Error("Error al registrar usuario: " + error.message);
   }
 }
 
-// Función para enviar un correo de verificación
+// Enviar correo de verificación
 async function sendVerificationEmail(email, token) {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
@@ -55,7 +55,7 @@ async function sendVerificationEmail(email, token) {
   await transporter.sendMail(mailOptions);
 }
 
-// Función para enviar el libro por correo
+// Enviar el libro por correo
 async function sendBookEmail(user) {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
@@ -78,6 +78,43 @@ async function sendBookEmail(user) {
     ],
   };
 
+  await transporter.sendMail(mailOptions);
+}
+// Enviar un correo cuando el usuario ya existe en la base de datos, ofreciéndole la opción de mantener su nombre o cambiarlo
+async function sendEmailWithOptions(existingUser, newUserData) {
+  const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  const optionsLink = `http://localhost:${process.env.PORT}/update-name?email=${existingUser.email}&action=maintain`;
+  const changeNameLink = `http://localhost:${process.env.PORT}/update-name?email=${existingUser.email}&action=change&newName=${newUserData.name}`;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: existingUser.email,
+    subject: "Ya estás registrado, ¿quieres actualizar tu nombre?",
+    text: `
+      Hola ${existingUser.name},
+      
+      Ya tenemos un registro con tu correo electrónico. Por favor, elige una de las siguientes opciones:
+      
+      1. Si deseas mantener tu nombre actual, haz clic en el siguiente enlace: ${optionsLink}.
+      2. Si prefieres cambiar tu nombre, haz clic en este otro enlace: ${changeNameLink}.
+      
+      Si tienes alguna duda, no dudes en ponerte en contacto con nosotros.
+
+      ¡Gracias por tu interés!
+
+      Saludos,
+      El equipo de soporte
+    `,
+  };
+
+  // Enviar el correo
   await transporter.sendMail(mailOptions);
 }
 
