@@ -118,4 +118,30 @@ async function sendEmailWithOptions(existingUser, newUserData) {
   await transporter.sendMail(mailOptions);
 }
 
-module.exports = { handleRegistrationRequest, sendBookEmail };
+async function updateNameService({ email, action, newName }) {
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      throw new Error("Usuario no encontrado");
+    }
+
+    if (action === 'maintain') {
+      await sendBookEmail(user);
+      return { message: `Nombre actual: ${user.name}. Se mantiene el nombre y continúa con la solicitud del material.` };
+    }
+
+    if (action === 'change' && newName) {
+      user.name = newName;
+      await user.save();
+      await sendBookEmail(user);
+      return { message: `Nombre cambiado a "${newName}" exitosamente. El libro ha sido enviado a tu correo.` };
+    }
+
+    throw new Error("Acción no válida o falta el nuevo nombre");
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+module.exports = { handleRegistrationRequest, sendBookEmail,updateNameService };
