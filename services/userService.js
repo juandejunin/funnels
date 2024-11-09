@@ -90,6 +90,19 @@ async function sendEmailWithOptions(existingUser, newUserData) {
     },
   });
 
+  const token = jwt.sign(
+    {
+      existingUserName: existingUser.name,
+      newName: newUserData.name,
+      email: existingUser.email,
+      actionOptions: ['maintain', 'change'], // Opciones de acción
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  console.log("Token generado para opciones de actualización de nombre:", token); 
+
   const optionsLink = `http://localhost:${process.env.PORT}/update-name?email=${existingUser.email}&action=maintain`;
   const changeNameLink = `http://localhost:${process.env.PORT}/update-name?email=${existingUser.email}&action=change&newName=${newUserData.name}`;
 
