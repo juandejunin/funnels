@@ -2,6 +2,7 @@ const User = require("../models/user");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
+
 // Lógica para manejar el registro de un usuario
 async function handleRegistrationRequest(userData) {
   try {

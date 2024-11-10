@@ -1,5 +1,7 @@
 const { handleRegistrationRequest, sendBookEmail, updateNameService } = require("../services/userService");
 const User = require("../models/user");
+const jwt = require('jsonwebtoken');
+
 
 async function registerUser(req, res) {
   const { name, email } = req.body;
