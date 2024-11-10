@@ -16,20 +16,15 @@ async function registerUser(req, res) {
   }
 }
 
-async function updateName(req, res) {
-  const { email, action, newName } = req.query;
-
+const updateName = async (req, res) => {
+  const { token, action, newName } = req.query; // Extracción del token y acción
   try {
-    // Llamar a la función en el servicio para procesar la actualización de nombre
-    const result = await updateNameService({ email, action, newName });
-
-    return res.json({ message: result.message });
+    const result = await updateNameService({ token, action, newName });
+    res.status(200).json(result);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error al procesar la solicitud" });
+    res.status(400).json({ message: error.message });
   }
-}
-
+};
 
 async function verifyEmail(req, res) {
   const token = req.query.token;

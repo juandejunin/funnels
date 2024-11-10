@@ -13,11 +13,9 @@ async function handleRegistrationRequest(userData) {
     }
 
     // Crear un nuevo usuario si no existe
-    const token = jwt.sign(
-      { email: userData.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    const token = jwt.sign({ email: userData.email }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
 
     const newUser = new User({
       name: userData.name,
@@ -27,7 +25,6 @@ async function handleRegistrationRequest(userData) {
 
     await newUser.save();
     await sendVerificationEmail(userData.email, token);
-
   } catch (error) {
     throw new Error("Error al registrar usuario: " + error.message);
   }
@@ -95,16 +92,22 @@ async function sendEmailWithOptions(existingUser, newUserData) {
       existingUserName: existingUser.name,
       newName: newUserData.name,
       email: existingUser.email,
-      actionOptions: ['maintain', 'change'], // Opciones de acción
+      actionOptions: ["maintain", "change"], // Opciones de acción
     },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
 
-  console.log("Token generado para opciones de actualización de nombre:", token); 
+  console.log(
+    "Token generado para opciones de actualización de nombre:",
+    token
+  );
 
-  const optionsLink = `http://localhost:${process.env.PORT}/update-name?email=${existingUser.email}&action=maintain`;
-  const changeNameLink = `http://localhost:${process.env.PORT}/update-name?email=${existingUser.email}&action=change&newName=${newUserData.name}`;
+  // const optionsLink = `http://localhost:${process.env.PORT}/update-name?email=${existingUser.email}&action=maintain`;
+  // const changeNameLink = `http://localhost:${process.env.PORT}/update-name?email=${existingUser.email}&action=change&newName=${newUserData.name}`;
+
+  const optionsLink = `http://localhost:${process.env.PORT}/update-name?token=${token}&action=maintain`;
+  const changeNameLink = `http://localhost:${process.env.PORT}/update-name?token=${token}&action=change&newName=${newUserData.name}`;
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -131,8 +134,12 @@ async function sendEmailWithOptions(existingUser, newUserData) {
   await transporter.sendMail(mailOptions);
 }
 
-async function updateNameService({ email, action, newName }) {
+async function updateNameService({ token, action, newName }) {
+  console.log(token)
   try {
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const email = decodedToken.email;
+
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -157,4 +164,8 @@ async function updateNameService({ email, action, newName }) {
   }
 }
 
-module.exports = { handleRegistrationRequest, sendBookEmail,updateNameService };
+module.exports = {
+  handleRegistrationRequest,
+  sendBookEmail,
+  updateNameService,
+};
