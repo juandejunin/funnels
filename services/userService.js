@@ -2,15 +2,22 @@ const User = require("../models/user");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
-
 // Lógica para manejar el registro de un usuario
 async function handleRegistrationRequest(userData) {
   try {
     const existingUser = await User.findOne({ email: userData.email });
 
     if (existingUser) {
+      // Si el nombre es el mismo que el anterior, no pedimos cambio de nombre
+      if (existingUser.name === userData.name) {
+        // Procedemos con el envío del libro directamente
+        await sendBookEmail(existingUser);
+        return; // Salimos de la función
+      }
+
+      // Si el nombre es diferente, enviamos las opciones para cambiar o mantener el nombre
       await sendEmailWithOptions(existingUser, userData);
-      return; // Si el usuario ya existe, sale de la función
+      return; // Si ya existe, no seguimos con el registro
     }
 
     // Crear un nuevo usuario si no existe
@@ -99,14 +106,6 @@ async function sendEmailWithOptions(existingUser, newUserData) {
     { expiresIn: "1h" }
   );
 
-  console.log(
-    "Token generado para opciones de actualización de nombre:",
-    token
-  );
-
-  // const optionsLink = `http://localhost:${process.env.PORT}/update-name?email=${existingUser.email}&action=maintain`;
-  // const changeNameLink = `http://localhost:${process.env.PORT}/update-name?email=${existingUser.email}&action=change&newName=${newUserData.name}`;
-
   const optionsLink = `http://localhost:${process.env.PORT}/update-name?token=${token}&action=maintain`;
   const changeNameLink = `http://localhost:${process.env.PORT}/update-name?token=${token}&action=change&newName=${newUserData.name}`;
 
@@ -136,7 +135,6 @@ async function sendEmailWithOptions(existingUser, newUserData) {
 }
 
 async function updateNameService({ token, action, newName }) {
-  console.log(token)
   try {
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     const email = decodedToken.email;
@@ -147,16 +145,20 @@ async function updateNameService({ token, action, newName }) {
       throw new Error("Usuario no encontrado");
     }
 
-    if (action === 'maintain') {
+    if (action === "maintain") {
       await sendBookEmail(user);
-      return { message: `Nombre actual: ${user.name}. Se mantiene el nombre y continúa con la solicitud del material.` };
+      return {
+        message: `Nombre actual: ${user.name}. Se mantiene el nombre y continúa con la solicitud del material.`,
+      };
     }
 
-    if (action === 'change' && newName) {
+    if (action === "change" && newName) {
       user.name = newName;
       await user.save();
       await sendBookEmail(user);
-      return { message: `Nombre cambiado a "${newName}" exitosamente. El libro ha sido enviado a tu correo.` };
+      return {
+        message: `Nombre cambiado a "${newName}" exitosamente. El libro ha sido enviado a tu correo.`,
+      };
     }
 
     throw new Error("Acción no válida o falta el nuevo nombre");

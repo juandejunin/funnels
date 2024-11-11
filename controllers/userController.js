@@ -11,7 +11,7 @@ async function registerUser(req, res) {
 
   try {
     await handleRegistrationRequest({ name, email });
-    res.redirect("/confirmation-success.html");
+    res.redirect("/verify-email.html");
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error al manejar la solicitud de registro" });
