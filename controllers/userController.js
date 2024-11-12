@@ -13,7 +13,12 @@ async function registerUser(req, res) {
 
   // Validación de nombre y correo
   if (!name || !email || !validator.isAlpha(name, 'es-ES', { ignore: " " }) || !validator.isEmail(email)) {
-    return res.status(400).json({ message: "Nombre o correo inválidos" });
+    // Renderizamos 'index.ejs' con el mensaje de error y los datos ingresados
+    return res.status(400).render("form", {
+      errorMessage: "Invalid name or email. Please try again.",
+      name,
+      email
+    });
   }
 
   try {
@@ -21,29 +26,13 @@ async function registerUser(req, res) {
     res.redirect("/verify-email.html");
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error al manejar la solicitud de registro" });
+    res.status(500).render("index", {
+      errorMessage: "An error occurred. Please try again later.",
+      name,
+      email
+    });
   }
 }
-
-
-// async function registerUser(req, res) {
-//   const { name, email } = req.body;
-//   if (!name || !email) {
-//     return res
-//       .status(400)
-//       .json({ message: "El nombre y el correo son requeridos" });
-//   }
-
-//   try {
-//     await handleRegistrationRequest({ name, email });
-//     res.redirect("/verify-email.html");
-//   } catch (error) {
-//     console.error(error);
-//     res
-//       .status(500)
-//       .json({ message: "Error al manejar la solicitud de registro" });
-//   }
-// }
 
 
 
@@ -89,4 +78,30 @@ async function verifyEmail(req, res) {
   }
 }
 
-module.exports = { registerUser, updateName, verifyEmail };
+async function requestBook(req, res) {
+  const { name, email } = req.body;
+
+  // Validación de nombre y correo
+  if (!name || !email || !validator.isAlpha(name, 'es-ES', { ignore: " " }) || !validator.isEmail(email)) {
+    return res.render("index", {
+      errorMessage: "Invalid name or email. Please try again.",
+      name,
+      email
+    });
+  }
+
+  // Si la validación es exitosa, procesa la solicitud
+  try {
+    // Lógica para enviar el libro o realizar la acción deseada
+    res.redirect("/success");  // Redirige a una página de éxito, por ejemplo
+  } catch (error) {
+    console.error(error);
+    res.status(500).render("index", {
+      errorMessage: "An error occurred. Please try again later.",
+      name,
+      email
+    });
+  }
+}
+
+module.exports = { registerUser, updateName, verifyEmail, requestBook };
