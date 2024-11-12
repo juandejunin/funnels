@@ -6,12 +6,14 @@ const {
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 
+const validator = require("validator");
+
 async function registerUser(req, res) {
   const { name, email } = req.body;
-  if (!name || !email) {
-    return res
-      .status(400)
-      .json({ message: "El nombre y el correo son requeridos" });
+
+  // Validación de nombre y correo
+  if (!name || !email || !validator.isAlpha(name, 'es-ES', { ignore: " " }) || !validator.isEmail(email)) {
+    return res.status(400).json({ message: "Nombre o correo inválidos" });
   }
 
   try {
@@ -19,11 +21,31 @@ async function registerUser(req, res) {
     res.redirect("/verify-email.html");
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ message: "Error al manejar la solicitud de registro" });
+    res.status(500).json({ message: "Error al manejar la solicitud de registro" });
   }
 }
+
+
+// async function registerUser(req, res) {
+//   const { name, email } = req.body;
+//   if (!name || !email) {
+//     return res
+//       .status(400)
+//       .json({ message: "El nombre y el correo son requeridos" });
+//   }
+
+//   try {
+//     await handleRegistrationRequest({ name, email });
+//     res.redirect("/verify-email.html");
+//   } catch (error) {
+//     console.error(error);
+//     res
+//       .status(500)
+//       .json({ message: "Error al manejar la solicitud de registro" });
+//   }
+// }
+
+
 
 const updateName = async (req, res) => {
   const { token, action, newName } = req.query;
