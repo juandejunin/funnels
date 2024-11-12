@@ -38,7 +38,28 @@ async function handleRegistrationRequest(userData) {
   }
 }
 
-// Enviar correo de verificación
+// // Enviar correo de verificación
+// async function sendVerificationEmail(email, token) {
+//   const transporter = nodemailer.createTransport({
+//     service: "Gmail",
+//     auth: {
+//       user: process.env.EMAIL_USER,
+//       pass: process.env.EMAIL_PASS,
+//     },
+//   });
+
+//   const verificationLink = `http://localhost:${process.env.PORT}/verify-email?token=${token}`;
+
+//   const mailOptions = {
+//     from: process.env.EMAIL_USER,
+//     to: email,
+//     subject: "Verifica tu correo para recibir el libro gratuito",
+//     text: `Por favor, haz clic en el siguiente enlace para verificar tu correo: ${verificationLink}`,
+//   };
+
+//   await transporter.sendMail(mailOptions);
+// }
+
 async function sendVerificationEmail(email, token) {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
@@ -54,11 +75,91 @@ async function sendVerificationEmail(email, token) {
     from: process.env.EMAIL_USER,
     to: email,
     subject: "Verifica tu correo para recibir el libro gratuito",
-    text: `Por favor, haz clic en el siguiente enlace para verificar tu correo: ${verificationLink}`,
+    html: `
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              color: #333;
+              padding: 20px;
+            }
+            .container {
+              background-color: white;
+              padding: 30px;
+              border-radius: 10px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+              max-width: 600px;
+              margin: auto;
+            }
+            h1 {
+              color: #4CAF50;
+              text-align: center;
+            }
+            p {
+              font-size: 16px;
+              line-height: 1.5;
+              margin-bottom: 20px;
+            }
+            .message-box {
+              background-color: #f9f9f9;
+              padding: 20px;
+              border-radius: 10px;
+              border: 1px solid #ddd;
+              margin-bottom: 20px;
+              text-align: center;
+            }
+            .button {
+              display: inline-block;
+              background-color: #4CAF50;
+              color: white;
+              padding: 10px 20px;
+              font-size: 16px;
+              text-decoration: none;
+              border-radius: 5px;
+              text-align: center;
+              transition: background-color 0.3s;
+              margin-top: 20px;
+            }
+            .button:hover {
+              background-color: #45a049;
+            }
+            .footer {
+              text-align: center;
+              font-size: 12px;
+              color: #888;
+              margin-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>¡Bienvenido!</h1>
+            
+            <div class="message-box">
+              <p>Por favor, haz clic en el siguiente enlace para verificar tu correo:</p>
+              
+              <p style="text-align: center;">
+                <a href="${verificationLink}" class="button">Verificar mi correo</a>
+              </p>
+            </div>
+
+            <p>Si no solicitaste este libro, por favor ignora este correo.</p>
+            <p>¡Gracias por tu interés!</p>
+
+            <div class="footer">
+              <p>Saludos,<br>El equipo de soporte</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
   };
 
   await transporter.sendMail(mailOptions);
 }
+
 
 // Enviar el libro por correo
 async function sendBookEmail(user) {
@@ -85,7 +186,7 @@ async function sendBookEmail(user) {
 
   await transporter.sendMail(mailOptions);
 }
-// Enviar un correo cuando el usuario ya existe en la base de datos, ofreciéndole la opción de mantener su nombre o cambiarlo
+
 async function sendEmailWithOptions(existingUser, newUserData) {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
@@ -113,26 +214,100 @@ async function sendEmailWithOptions(existingUser, newUserData) {
     from: process.env.EMAIL_USER,
     to: existingUser.email,
     subject: "Ya estás registrado, ¿quieres actualizar tu nombre?",
-    text: `
-      Hola ${existingUser.name},
-      
-      Ya tenemos un registro con tu correo electrónico. Por favor, elige una de las siguientes opciones:
-      
-      1. Si deseas mantener tu nombre actual, haz clic en el siguiente enlace: ${optionsLink}.
-      2. Si prefieres cambiar tu nombre, haz clic en este otro enlace: ${changeNameLink}.
-      
-      Si tienes alguna duda, no dudes en ponerte en contacto con nosotros.
+    html: `
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              color: #333;
+              padding: 20px;
+            }
+            .container {
+              background-color: white;
+              padding: 30px;
+              border-radius: 10px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+              max-width: 600px;
+              margin: auto;
+            }
+            h1 {
+              color: #4CAF50;
+              text-align: center;
+            }
+            p {
+              font-size: 16px;
+              line-height: 1.5;
+              margin-bottom: 20px;
+            }
+            .button {
+              display: inline-block;
+              background-color: #4CAF50;
+              color: white;
+              padding: 10px 20px;
+              font-size: 16px;
+              text-decoration: none;
+              border-radius: 5px;
+              text-align: center;
+              margin-bottom: 10px;
+              transition: background-color 0.3s;
+            }
+            .button:hover {
+              background-color: #45a049;
+            }
+            .info-box {
+              background-color: #f9f9f9;
+              border: 1px solid #ddd;
+              padding: 20px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+            }
+            .info-box p {
+              text-align: center;
+              font-size: 16px;
+            }
+            .footer {
+              text-align: center;
+              font-size: 12px;
+              color: #888;
+              margin-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <!-- Todo el contenido dentro de la caja de información -->
+            <div class="info-box">
+              <h1>¡Hola ${existingUser.name}!</h1>
+              <p>Ya tenemos un registro con tu correo electrónico. Por favor, elige una de las siguientes opciones:</p>
 
-      ¡Gracias por tu interés!
+              <!-- Botones de acción con los nombres -->
+              <p>
+                <a href="${optionsLink}" class="button">Mantener mi nombre actual: ${existingUser.name}</a>
+              </p>
+              <p>
+                <a href="${changeNameLink}" class="button">Cambiar mi nombre a: ${newUserData.name}</a>
+              </p>
 
-      Saludos,
-      El equipo de soporte
+              <p>Si tienes alguna duda, no dudes en ponerte en contacto con nosotros.</p>
+              <p>¡Gracias por tu interés!</p>
+            </div>
+
+            <!-- Pie de página -->
+            <div class="footer">
+              <p>Saludos,<br>El equipo de soporte</p>
+            </div>
+          </div>
+        </body>
+      </html>
     `,
   };
 
   // Enviar el correo
   await transporter.sendMail(mailOptions);
 }
+
 
 async function updateNameService({ token, action, newName }) {
   try {

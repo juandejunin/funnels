@@ -13,12 +13,14 @@ app.use(express.static("public"));
 const helmet = require('helmet');
 app.use(helmet());
 
-
+// Configurar EJS como motor de plantillas
+app.set('view engine', 'ejs');
 // Conectar a MongoDB
 connectToDatabase();
 
 // Rutas
 app.use("/", userRoutes);
+
 
 // Iniciar el servidor
 
