@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bienvenido a Nuestra Página</title>
+  <title>Nombre Mantenido</title>
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <style>
@@ -12,26 +12,32 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background-color: #f4f4f4;
+      background-color: #f0f8ff;
       margin: 0;
     }
-    .container {
-      background-color: white;
+    .content-container {
+      background: #fff;
       padding: 30px;
-      border-radius: 10px;
+      border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      max-width: 500px;
-      text-align: center;
+      max-width: 400px;
+      width: 100%;
     }
 
   </style>
 </head>
 <body>
   <div class="container">
-    <h1 class="mb-4">Bienvenido a Nuestra Página</h1>
-    <p>¡Descubre nuestro increíble libro gratuito y mejora tus conocimientos!</p>
-    <p>Para recibirlo, primero verifica tu correo electrónico después de completar el formulario.</p>
-    <a href="/form.html" class="btn btn-primary mt-3">Solicitar el Libro</a>
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="content-container text-center">
+          <h2 class="mb-4">¡Gracias!</h2>
+          <p>Has decidido mantener tu nombre actual. Hemos enviado el libro a tu correo.</p>
+          <p>Revisa tu bandeja de entrada para encontrar el libro. Si tienes alguna pregunta, no dudes en contactarnos.</p>
+          <a href="/" class="btn btn-primary mt-3">Volver al inicio</a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Bootstrap JS (optional for extra functionality) -->

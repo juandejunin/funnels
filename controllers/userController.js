@@ -1,30 +1,45 @@
-const { handleRegistrationRequest, sendBookEmail, updateNameService } = require("../services/userService");
+const {
+  handleRegistrationRequest,
+  sendBookEmail,
+  updateNameService,
+} = require("../services/userService");
 const User = require("../models/user");
-const jwt = require('jsonwebtoken');
-
+const jwt = require("jsonwebtoken");
 
 async function registerUser(req, res) {
   const { name, email } = req.body;
   if (!name || !email) {
-    return res.status(400).json({ message: "El nombre y el correo son requeridos" });
+    return res
+      .status(400)
+      .json({ message: "El nombre y el correo son requeridos" });
   }
 
   try {
     await handleRegistrationRequest({ name, email });
-    res.redirect("/confirmation-success.html");
+    res.redirect("/verify-email.html");
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error al manejar la solicitud de registro" });
+    res
+      .status(500)
+      .json({ message: "Error al manejar la solicitud de registro" });
   }
 }
 
 const updateName = async (req, res) => {
-  const { token, action, newName } = req.query; // Extracción del token y acción
+  const { token, action, newName } = req.query;
+
   try {
     const result = await updateNameService({ token, action, newName });
-    res.status(200).json(result);
+
+    if (action === "maintain") {
+      res.redirect("/keep-name-success.html"); // Redirige a mantener nombre
+    } else if (action === "change") {
+      res.redirect("/change-name-success.html"); // Redirige a cambiar nombre
+    } else {
+      throw new Error("Acción no válida.");
+    }
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).redirect("/error.html"); // Redirige a la página de error
   }
 };
 
