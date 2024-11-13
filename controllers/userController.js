@@ -9,15 +9,23 @@ const jwt = require("jsonwebtoken");
 const validator = require("validator");
 
 async function registerUser(req, res) {
-  const { name, email } = req.body;
+  const { name, email, acceptPrivacyPolicy } = req.body;  // Obtenemos 'acceptPrivacyPolicy' del body
 
-  // Validación de nombre y correo
+  // Validación de nombre, correo y si el checkbox de privacidad fue marcado
   if (!name || !email || !validator.isAlpha(name, 'es-ES', { ignore: " " }) || !validator.isEmail(email)) {
-    // Renderizamos 'index.ejs' con el mensaje de error y los datos ingresados
     return res.status(400).render("form", {
-      errorMessage: "Invalid name or email. Please try again.",
+      errorMessage: "Nombre o correo inválido. Por favor, intente de nuevo.",
       name,
-      email
+      email,
+    });
+  }
+
+  // Validación del consentimiento de la política de privacidad
+  if (!acceptPrivacyPolicy) {
+    return res.status(400).render("form", {
+      errorMessage: "Debes aceptar la política de privacidad para continuar.",
+      name,
+      email,
     });
   }
 
@@ -27,12 +35,39 @@ async function registerUser(req, res) {
   } catch (error) {
     console.error(error);
     res.status(500).render("index", {
-      errorMessage: "An error occurred. Please try again later.",
+      errorMessage: "Ocurrió un error. Por favor, intente más tarde.",
       name,
-      email
+      email,
     });
   }
 }
+// async function registerUser(req, res) {
+//   const { name, email } = req.body;
+
+//     // Validación de nombre y correo
+//     if (!name || !email || !validator.isAlpha(name, 'es-ES', { ignore: " " }) || !validator.isEmail(email)) {
+//       // Si hay un error, volvemos a renderizar el formulario con un mensaje de error
+//       return res.status(400).render("form", {
+//         errorMessage: "Invalid name or email. Please try again.", // Mensaje de error
+//         name,   // Volver a mostrar el nombre ingresado
+//         email   // Volver a mostrar el correo ingresado
+//       });
+//     }
+
+
+
+//   try {
+//     await handleRegistrationRequest({ name, email });
+//     res.redirect("/verify-email.html");
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).render("index", {
+//       errorMessage: "An error occurred. Please try again later.",
+//       name,
+//       email
+//     });
+//   }
+// }
 
 
 
