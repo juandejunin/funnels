@@ -2,6 +2,10 @@ const express = require("express");
 const router = express.Router();
 const { registerUser, updateName, verifyEmail } = require("../controllers/userController");
 
+const { unsubscribeUser } = require('../controllers/userController');
+
+router.get('/unsubscribe', unsubscribeUser);
+
 router.get("/form", (req, res) => {
     res.render("form", {
       errorMessage: "",  // Si quieres mostrar un mensaje de error, colócalo aquí
