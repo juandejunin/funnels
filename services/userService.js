@@ -8,7 +8,13 @@ async function handleRegistrationRequest(userData) {
     const existingUser = await User.findOne({ email: userData.email });
 
     if (existingUser) {
-      // Si el nombre es el mismo que el anterior, no pedimos cambio de nombre
+      if (!existingUser.isConfirmed) {
+        // Si el usuario no está confirmado
+        // Enviar correo de verificación de nuevo
+        await sendVerificationEmail(existingUser.email);
+        return; // Salimos de la función
+      }
+
       if (existingUser.name === userData.name) {
         // Procedemos con el envío del libro directamente
         await sendBookEmail(existingUser);
@@ -40,7 +46,9 @@ async function handleRegistrationRequest(userData) {
 
 async function sendVerificationEmail(email) {
   // Generar el token JWT
-  const token = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ email: email }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
   const unsubscribeLink = generateUnsubscribeLink(email);
   const transporter = nodemailer.createTransport({
     service: "Gmail",
@@ -153,9 +161,9 @@ async function sendVerificationEmail(email) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log('Correo de verificación enviado a:', email);
+    console.log("Correo de verificación enviado a:", email);
   } catch (error) {
-    console.error('Error al enviar el correo:', error);
+    console.error("Error al enviar el correo:", error);
   }
 }
 
@@ -256,8 +264,6 @@ async function sendEmailWithOptions(existingUser, newUserData) {
       pass: process.env.EMAIL_PASS,
     },
   });
-
-  const unsubscribeLink = generateUnsubscribeLink(existingUser.email);
 
   const token = jwt.sign(
     {
@@ -429,11 +435,12 @@ function generateUnsubscribeLink(email) {
   });
 
   // Crear el enlace real de desuscripción, con el dominio correcto (puede ser 'localhost' o el dominio en producción)
-  const unsubscribeLink = `http://${process.env.DOMAIN || 'localhost'}:${process.env.PORT}/unsubscribe?email=${email}&token=${token}`;
+  const unsubscribeLink = `http://${process.env.DOMAIN || "localhost"}:${
+    process.env.PORT
+  }/unsubscribe?email=${email}&token=${token}`;
 
   return unsubscribeLink;
 }
-
 
 module.exports = {
   handleRegistrationRequest,
