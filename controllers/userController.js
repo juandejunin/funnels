@@ -164,9 +164,6 @@ async function unsubscribeUser(req, res) {
   }
 }
 
-module.exports = {
-  unsubscribeUser,
-};
 
 module.exports = {
   registerUser,

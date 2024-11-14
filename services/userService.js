@@ -38,113 +38,10 @@ async function handleRegistrationRequest(userData) {
   }
 }
 
-// async function sendVerificationEmail(email, token) {
-//   const transporter = nodemailer.createTransport({
-//     service: "Gmail",
-//     auth: {
-//       user: process.env.EMAIL_USER,
-//       pass: process.env.EMAIL_PASS,
-//     },
-//   });
-
-//   const verificationLink = `http://localhost:${process.env.PORT}/verify-email?token=${token}`;
-
-//   const mailOptions = {
-//     from: process.env.EMAIL_USER,
-//     to: email,
-//     subject: "Verifica tu correo para recibir el libro gratuito",
-//     html: `
-//       <html>
-//         <head>
-//           <style>
-//             body {
-//               font-family: Arial, sans-serif;
-//               background-color: #f4f4f4;
-//               color: #333;
-//               padding: 20px;
-//             }
-//             .container {
-//               background-color: white;
-//               padding: 30px;
-//               border-radius: 10px;
-//               box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-//               max-width: 600px;
-//               margin: auto;
-//             }
-//             h1 {
-//               color: #4CAF50;
-//               text-align: center;
-//             }
-//             p {
-//               font-size: 16px;
-//               line-height: 1.5;
-//               margin-bottom: 20px;
-//             }
-//             .message-box {
-//               background-color: #f9f9f9;
-//               padding: 20px;
-//               border-radius: 10px;
-//               border: 1px solid #ddd;
-//               margin-bottom: 20px;
-//               text-align: center;
-//             }
-//             .button {
-//               display: inline-block;
-//               background-color: #4CAF50;
-//               color: white;
-//               padding: 10px 20px;
-//               font-size: 16px;
-//               text-decoration: none;
-//               border-radius: 5px;
-//               text-align: center;
-//               transition: background-color 0.3s;
-//               margin-top: 20px;
-//             }
-//             .button:hover {
-//               background-color: #45a049;
-//             }
-//             .footer {
-//               text-align: center;
-//               font-size: 12px;
-//               color: #888;
-//               margin-top: 20px;
-//             }
-//           </style>
-//         </head>
-//         <body>
-//           <div class="container">
-//             <h1>¡Bienvenido!</h1>
-
-//             <div class="message-box">
-//               <p>Por favor, haz clic en el siguiente enlace para verificar tu correo:</p>
-
-//               <p style="text-align: center;">
-//                 <a href="${verificationLink}" class="button">Verificar mi correo</a>
-//               </p>
-//             </div>
-
-//             <p>Si no solicitaste este libro, por favor ignora este correo.</p>
-//             <p>¡Gracias por tu interés!</p>
-
-//             <div class="footer">
-//               <p>Saludos,<br>El equipo de soporte</p>
-//             </div>
-//           </div>
-//         </body>
-//       </html>
-//     `,
-//   };
-
-//   await transporter.sendMail(mailOptions);
-// }
-
-// Enviar el libro por correo
-
-
 async function sendVerificationEmail(email) {
   // Generar el token JWT
   const token = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
+  const unsubscribeLink = generateUnsubscribeLink(email);
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
@@ -246,7 +143,7 @@ async function sendVerificationEmail(email) {
             </div>
 
             <div class="unsubscribe">
-              <p><a href="http://localhost:${process.env.PORT}/unsubscribe?email=${email}&token=${token}">Darse de baja</a></p>
+              <p><a href="${unsubscribeLink}">Darse de baja</a></p>
             </div>
           </div>
         </body>
@@ -263,6 +160,7 @@ async function sendVerificationEmail(email) {
 }
 
 async function sendBookEmail(user) {
+  const unsubscribeLink = generateUnsubscribeLink(user.email);
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
@@ -339,7 +237,7 @@ async function sendBookEmail(user) {
             </div>
 
             <div class="unsubscribe">
-              <p><a href="http://localhost:${process.env.PORT}/unsubscribe?email=${user.email}">Darse de baja</a></p>
+              <p><a href="${unsubscribeLink}">Darse de baja</a></p>
             </div>
           </div>
         </body>
@@ -350,31 +248,6 @@ async function sendBookEmail(user) {
   await transporter.sendMail(mailOptions);
 }
 
-// async function sendBookEmail(user) {
-//   const transporter = nodemailer.createTransport({
-//     service: "Gmail",
-//     auth: {
-//       user: process.env.EMAIL_USER,
-//       pass: process.env.EMAIL_PASS,
-//     },
-//   });
-
-//   const mailOptions = {
-//     from: process.env.EMAIL_USER,
-//     to: user.email,
-//     subject: "Tu libro gratuito PDF",
-//     text: "Gracias por verificar tu correo. ¡Aquí está tu libro en PDF!",
-//     attachments: [
-//       {
-//         filename: "book.pdf",
-//         path: "./teoria.pdf", // Asegúrate de que la ruta sea correcta
-//       },
-//     ],
-//   };
-
-//   await transporter.sendMail(mailOptions);
-// }
-
 async function sendEmailWithOptions(existingUser, newUserData) {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
@@ -383,6 +256,8 @@ async function sendEmailWithOptions(existingUser, newUserData) {
       pass: process.env.EMAIL_PASS,
     },
   });
+
+  const unsubscribeLink = generateUnsubscribeLink(existingUser.email);
 
   const token = jwt.sign(
     {
@@ -495,7 +370,7 @@ async function sendEmailWithOptions(existingUser, newUserData) {
             </div>
 
             <div class="unsubscribe">
-              <p><a href="http://localhost:${process.env.PORT}/unsubscribe?email=${existingUser.email}">Darse de baja</a></p>
+              <p><a href="${unsubscribeLink}">Darse de baja</a></p>
             </div>
           </div>
         </body>
@@ -539,13 +414,26 @@ async function updateNameService({ token, action, newName }) {
   }
 }
 
+// function generateUnsubscribeLink(email) {
+//   const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+//     expiresIn: "1h",
+//   });
+//   const unsubscribeLink = `http://example.com/unsubscribe?token=${token}`;
+//   return unsubscribeLink;
+// }
+
 function generateUnsubscribeLink(email) {
+  // Generar el token de desuscripción
   const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
+    expiresIn: "1h", // Expiración del token
   });
-  const unsubscribeLink = `http://example.com/unsubscribe?token=${token}`;
+
+  // Crear el enlace real de desuscripción, con el dominio correcto (puede ser 'localhost' o el dominio en producción)
+  const unsubscribeLink = `http://${process.env.DOMAIN || 'localhost'}:${process.env.PORT}/unsubscribe?email=${email}&token=${token}`;
+
   return unsubscribeLink;
 }
+
 
 module.exports = {
   handleRegistrationRequest,
