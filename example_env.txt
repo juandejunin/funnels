@@ -1,0 +1,17 @@
+# Configuración de la aplicación
+NODE_ENV=production  # Entorno de ejecución (producción)
+
+# Variables de autenticación y seguridad
+JWT_SECRET=tu-secreto-para-jwt  # Clave secreta para la firma de JWT
+EMAIL_USER=tu-email@gmail.com  # Usuario del correo (por ejemplo, tu cuenta de Gmail)
+EMAIL_PASS=tu-password-email  # Contraseña o token de la cuenta de correo
+
+# Configuración de nodemailer (si usas Gmail como servicio de envío)
+EMAIL_SERVICE=Gmail  # Servicio de correo (por ejemplo, Gmail)
+BASE_URL=https://tu-dominio.com  # URL base de la aplicación (en producción)
+
+# Configuración de la base de datos
+DB_URI=mongodb+srv://usuario:contraseña@cluster.mongodb.net/tu-base-de-datos  # URI de conexión a MongoDB
+
+# Puerto de la aplicación
+PORT=3000  # Puerto en el que se ejecuta la aplicación en producción

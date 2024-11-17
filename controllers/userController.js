@@ -37,10 +37,11 @@ async function registerUser(req, res) {
 
   try {
     await handleRegistrationRequest({ name, email });
+    console.log(email)
     res.redirect("/verify-email.html");
   } catch (error) {
     console.error(error);
-    res.status(500).render("index", {
+    res.status(500).render("form", {
       errorMessage: "Ocurrió un error. Por favor, intente más tarde.",
       name,
       email,
@@ -100,7 +101,7 @@ async function requestBook(req, res) {
     !validator.isAlpha(name, "es-ES", { ignore: " " }) ||
     !validator.isEmail(email)
   ) {
-    return res.render("index", {
+    return res.render("form", {
       errorMessage: "Invalid name or email. Please try again.",
       name,
       email,
