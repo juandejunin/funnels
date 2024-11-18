@@ -2,63 +2,6 @@ const User = require("../models/user");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
-// async function handleRegistrationRequest(userData) {
-//   try {
-//     const existingUser = await User.findOne({ email: userData.email });
-
-//     if (existingUser) {
-//       if (!existingUser.isConfirmed) {
-//         // Si el usuario no está confirmado, reutilizar su token existente
-//         let token = existingUser.verificationToken;
-//         console.log("token viejo: ", token);
-//         if (!token) {
-//           // Generar un nuevo token si no existe
-//           token = jwt.sign(
-//             { email: existingUser.email },
-//             process.env.JWT_SECRET,
-//             {
-//               expiresIn: "1h",
-//             }
-//           );
-
-//           console.log("token luedo de la verificacion: ", token);
-//           existingUser.verificationToken = token;
-//           await existingUser.save();
-//         }
-//         // Enviar correo de verificación con el token existente
-//         await sendVerificationEmail(existingUser.email, token);
-//         return;
-//       }
-
-//       if (existingUser.name === userData.name) {
-//         // Procedemos con el envío del libro directamente
-//         await sendBookEmail(existingUser);
-//         return;
-//       }
-
-//       // Si el nombre es diferente, enviamos las opciones para cambiar o mantener el nombre
-//       await sendEmailWithOptions(existingUser, userData);
-//       return;
-//     }
-
-//     // Crear un nuevo usuario si no existe
-//     const token = jwt.sign({ email: userData.email }, process.env.JWT_SECRET, {
-//       expiresIn: "1h",
-//     });
-
-//     const newUser = new User({
-//       name: userData.name,
-//       email: userData.email,
-//       verificationToken: token,
-//     });
-
-//     await newUser.save();
-//     await sendVerificationEmail(userData.email, token);
-//   } catch (error) {
-//     throw new Error("Error al registrar usuario: " + error.message);
-//   }
-// }
-
 async function handleRegistrationRequest(userData) {
   try {
     // Buscar usuario por email
@@ -244,8 +187,8 @@ async function sendBookEmail(user) {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: user.email,
-    subject: "Tu libro gratuito PDF",
-    text: "Gracias por verificar tu correo. ¡Aquí está tu libro en PDF!",
+    subject: "Tu libro gratuito Aprendizaje Typescript",
+    text: "Gracias por verificar tu correo. ¡Aquí está tu libro electrónico gratuito creado a partir de contribuyentes de Stack Overflow !",
     attachments: [
       {
         filename: "book.pdf",
