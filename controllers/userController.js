@@ -37,8 +37,7 @@ async function registerUser(req, res) {
 
   try {
     await handleRegistrationRequest({ name, email });
-    console.log(email)
-    res.redirect("/verify-email.html");
+        res.redirect("/verify-email.html");
   } catch (error) {
     console.error(error);
     res.status(500).render("form", {
