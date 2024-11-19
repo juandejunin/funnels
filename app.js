@@ -12,32 +12,47 @@ const NODE_ENV = process.env.NODE_ENV || 'development';  // Se obtiene el valor 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"], // Solo contenido del propio servidor
-      scriptSrc: [
-        "'self'",
-        "https://code.jquery.com", // jQuery
-        "https://cdn.jsdelivr.net", // Popper.js
-        "https://stackpath.bootstrapcdn.com", // Bootstrap JS
-      ],
-      styleSrc: [
-        "'self'",
-        "https://stackpath.bootstrapcdn.com", // Bootstrap CSS
-        "'unsafe-inline'", // Necesario para algunos estilos en línea que usa Bootstrap
-      ],
-      imgSrc: ["'self'", "data:"], // Imágenes desde el servidor o datos embebidos
-      connectSrc: ["'self'"], // Solicitudes de red
-      fontSrc: ["'self'", "https://stackpath.bootstrapcdn.com"], // Fuentes de Bootstrap
-      objectSrc: ["'none'"], // Bloquear objetos como Flash o plugins
-      formAction: ["'self'", "http://194.164.169.108:2500", "https://194.164.169.108:2500"], // Permite formularios desde HTTP y HTTPS
-    },
-  })
-);
+// app.use(
+//   helmet.contentSecurityPolicy({
+//     directives: {
+//       defaultSrc: ["'self'"], // Solo contenido del propio servidor
+//       scriptSrc: [
+//         "'self'",
+//         "https://code.jquery.com", // jQuery
+//         "https://cdn.jsdelivr.net", // Popper.js
+//         "https://stackpath.bootstrapcdn.com", // Bootstrap JS
+//       ],
+//       styleSrc: [
+//         "'self'",
+//         "https://stackpath.bootstrapcdn.com", // Bootstrap CSS
+//         "'unsafe-inline'", // Necesario para algunos estilos en línea que usa Bootstrap
+//       ],
+//       imgSrc: ["'self'", "data:"], // Imágenes desde el servidor o datos embebidos
+//       connectSrc: ["'self'"], // Solicitudes de red
+//       fontSrc: ["'self'", "https://stackpath.bootstrapcdn.com"], // Fuentes de Bootstrap
+//       objectSrc: ["'none'"], // Bloquear objetos como Flash o plugins
+//       formAction: ["'self'", "http://194.164.169.108:2500", "https://194.164.169.108:2500"], // Permite formularios desde HTTP y HTTPS
+//     },
+//   })
+// );
 
 
 // Configurar EJS como motor de plantillas
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "https://code.jquery.com"],
+        styleSrc: ["'self'", "https://stackpath.bootstrapcdn.com"],
+        formAction: ["'self'", "http://194.164.169.108:2500", "https://194.164.169.108:2500"],
+      },
+    },
+    hsts: false, // Desactiva HSTS si estás usando solo HTTP
+  })
+);
+
 app.set("view engine", "ejs");
 
 // Conectar a MongoDB
