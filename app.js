@@ -31,6 +31,7 @@ app.use(
       connectSrc: ["'self'"], // Solicitudes de red
       fontSrc: ["'self'", "https://stackpath.bootstrapcdn.com"], // Fuentes de Bootstrap
       objectSrc: ["'none'"], // Bloquear objetos como Flash o plugins
+      formAction: ["'self'", "https://194.164.169.108:2500"],
     },
   })
 );
