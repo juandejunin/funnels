@@ -1,58 +1,40 @@
 require("dotenv").config();
 const express = require("express");
 const helmet = require("helmet");
+const fs = require("fs");
+const http = require("http");
+const https = require("https");
+const path = require("path");
 const connectToDatabase = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const NODE_ENV = process.env.NODE_ENV || 'development';  // Se obtiene el valor del entorno, si no se define, por defecto será 'development'
+const PORT_HTTP = 80; // Puerto para HTTP
+const PORT_HTTPS = 443; // Puerto para HTTPS
+const NODE_ENV = process.env.NODE_ENV || "development"; // Entorno de ejecución
+
+// Solo intentar cargar los certificados si estamos en producción
+let sslOptions = {};
+if (NODE_ENV === "production") {
+  // Leer archivos de certificado y clave privada solo en producción
+  sslOptions = {
+    key: fs.readFileSync(path.resolve(__dirname, "certs", "archivo.key")),
+    cert: fs.readFileSync(path.resolve(__dirname, "certs", "archivo.cer")),
+  };
+}
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
-// app.use(
-//   helmet.contentSecurityPolicy({
-//     directives: {
-//       defaultSrc: ["'self'"], // Solo contenido del propio servidor
-//       scriptSrc: [
-//         "'self'",
-//         "https://code.jquery.com", // jQuery
-//         "https://cdn.jsdelivr.net", // Popper.js
-//         "https://stackpath.bootstrapcdn.com", // Bootstrap JS
-//       ],
-//       styleSrc: [
-//         "'self'",
-//         "https://stackpath.bootstrapcdn.com", // Bootstrap CSS
-//         "'unsafe-inline'", // Necesario para algunos estilos en línea que usa Bootstrap
-//       ],
-//       imgSrc: ["'self'", "data:"], // Imágenes desde el servidor o datos embebidos
-//       connectSrc: ["'self'"], // Solicitudes de red
-//       fontSrc: ["'self'", "https://stackpath.bootstrapcdn.com"], // Fuentes de Bootstrap
-//       objectSrc: ["'none'"], // Bloquear objetos como Flash o plugins
-//       formAction: ["'self'", "http://194.164.169.108:2500", "https://194.164.169.108:2500"], // Permite formularios desde HTTP y HTTPS
-//     },
-//   })
-// );
-
-
-// Configurar EJS como motor de plantillas
-
+// Configuración de seguridad con Helmet
 app.use(
   helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "https://code.jquery.com"],
-        styleSrc: ["'self'", "https://stackpath.bootstrapcdn.com"],
-        formAction: ["'self'", "http://194.164.169.108:2500", "https://194.164.169.108:2500"],
-      },
-    },
-    hsts: false, // Desactiva HSTS si estás usando solo HTTP
+    contentSecurityPolicy: false, // Desactiva CSP si es necesario configurarlo manualmente
   })
 );
 
+// Configurar EJS como motor de plantillas
 app.set("view engine", "ejs");
 
 // Conectar a MongoDB
@@ -73,18 +55,35 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK", message: "Server is healthy" });
 });
 
-// Comportamiento según el entorno
-if (NODE_ENV === 'production') {
-  // Configuraciones específicas para producción (como habilitar caché, o usar un puerto específico)
-  console.log("Aplicación en producción");
+// Redirigir tráfico HTTP a HTTPS solo si estamos en producción
+if (NODE_ENV === "production") {
+  http
+    .createServer((req, res) => {
+      res.writeHead(301, { Location: `https://${req.headers.host}${req.url}` });
+      res.end();
+    })
+    .listen(PORT_HTTP, () => {
+      console.log(`Servidor HTTP escuchando en el puerto ${PORT_HTTP} (redirigiendo a HTTPS)`);
+    });
+
+  // Iniciar servidor HTTPS en producción
+  https
+    .createServer(sslOptions, app)
+    .listen(PORT_HTTPS, () => {
+      console.log(`Servidor HTTPS escuchando en el puerto ${PORT_HTTPS}`);
+    });
 } else {
-  // Configuraciones para desarrollo
-  console.log("Aplicación en desarrollo");
+  // Solo en local no usamos HTTPS, solo HTTP
+  app.listen(PORT_HTTP, () => {
+    console.log(`Servidor HTTP en desarrollo escuchando en el puerto ${PORT_HTTP}`);
+  });
 }
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Comportamiento según el entorno
+if (NODE_ENV === "production") {
+  console.log("Aplicación en producción");
+} else {
+  console.log("Aplicación en desarrollo");
+}
 
 module.exports = app;
