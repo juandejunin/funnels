@@ -18,9 +18,18 @@ let sslOptions = {};
 if (NODE_ENV === "production") {
   // Leer archivos de certificado y clave privada solo en producción
   sslOptions = {
-    key: fs.readFileSync(path.resolve(__dirname, "certs", "archivo.key")),
-    cert: fs.readFileSync(path.resolve(__dirname, "certs", "archivo.cer")),
+    key: fs.readFileSync(
+      path.resolve(__dirname, "certs", process.env.PRIVATE_KEY_FILE)
+    ),
+    cert: fs.readFileSync(
+      path.resolve(__dirname, "certs", process.env.CERT_FILE)
+    ),
   };
+  if (!process.env.PRIVATE_KEY_FILE || !process.env.CERT_FILE) {
+    throw new Error(
+      "PRIVATE_KEY_FILE o CERT_FILE no están definidas en las variables de entorno"
+    );
+  }
 }
 
 // Middleware
@@ -63,19 +72,21 @@ if (NODE_ENV === "production") {
       res.end();
     })
     .listen(PORT_HTTP, () => {
-      console.log(`Servidor HTTP escuchando en el puerto ${PORT_HTTP} (redirigiendo a HTTPS)`);
+      console.log(
+        `Servidor HTTP escuchando en el puerto ${PORT_HTTP} (redirigiendo a HTTPS)`
+      );
     });
 
   // Iniciar servidor HTTPS en producción
-  https
-    .createServer(sslOptions, app)
-    .listen(PORT_HTTPS, () => {
-      console.log(`Servidor HTTPS escuchando en el puerto ${PORT_HTTPS}`);
-    });
+  https.createServer(sslOptions, app).listen(PORT_HTTPS, () => {
+    console.log(`Servidor HTTPS escuchando en el puerto ${PORT_HTTPS}`);
+  });
 } else {
   // Solo en local no usamos HTTPS, solo HTTP
   app.listen(PORT_HTTP, () => {
-    console.log(`Servidor HTTP en desarrollo escuchando en el puerto ${PORT_HTTP}`);
+    console.log(
+      `Servidor HTTP en desarrollo escuchando en el puerto ${PORT_HTTP}`
+    );
   });
 }
 
