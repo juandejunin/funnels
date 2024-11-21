@@ -28,10 +28,10 @@ if (NODE_ENV === "production") {
   try {
     sslOptions = {
       key: fs.readFileSync(
-        path.resolve(__dirname, "certs", process.env.PRIVATE_KEY_FILE)
+        path.resolve(process.env.PRIVATE_KEY_FILE)
       ),
       cert: fs.readFileSync(
-        path.resolve(__dirname, "certs", process.env.CERT_FILE)
+        path.resolve(process.env.CERT_FILE)
       ),
     };
   } catch (error) {
