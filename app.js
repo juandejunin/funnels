@@ -15,22 +15,31 @@ const NODE_ENV = process.env.NODE_ENV || "development"; // Entorno de ejecución
 
 // Solo intentar cargar los certificados si estamos en producción
 let sslOptions = {};
+
 if (NODE_ENV === "production") {
-  // Leer archivos de certificado y clave privada solo en producción
-  sslOptions = {
-    key: fs.readFileSync(
-      path.resolve(__dirname, "certs", process.env.PRIVATE_KEY_FILE)
-    ),
-    cert: fs.readFileSync(
-      path.resolve(__dirname, "certs", process.env.CERT_FILE)
-    ),
-  };
+  // Verificar que las variables de entorno estén definidas
   if (!process.env.PRIVATE_KEY_FILE || !process.env.CERT_FILE) {
     throw new Error(
       "PRIVATE_KEY_FILE o CERT_FILE no están definidas en las variables de entorno"
     );
   }
+
+  // Leer archivos de certificado y clave privada
+  try {
+    sslOptions = {
+      key: fs.readFileSync(
+        path.resolve(__dirname, "certs", process.env.PRIVATE_KEY_FILE)
+      ),
+      cert: fs.readFileSync(
+        path.resolve(__dirname, "certs", process.env.CERT_FILE)
+      ),
+    };
+  } catch (error) {
+    console.error("Error al cargar los certificados SSL:", error.message);
+    throw new Error("No se pudieron cargar los certificados SSL.");
+  }
 }
+
 
 // Middleware
 app.use(express.json());
