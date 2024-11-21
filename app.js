@@ -9,8 +9,8 @@ const connectToDatabase = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 
 const app = express();
-const PORT_HTTP = 80; // Puerto para HTTP
-const PORT_HTTPS = 443; // Puerto para HTTPS
+PORT_HTTP = process.env.PORT_HTTP; // Puerto para HTTP
+PORT_HTTPS = process.env.PORT_HTTPS; // Puerto para HTTPS
 const NODE_ENV = process.env.NODE_ENV || "development"; // Entorno de ejecución
 
 // Solo intentar cargar los certificados si estamos en producción
