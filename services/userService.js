@@ -2,6 +2,17 @@ const User = require("../models/user");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
+
+
+let PORT;
+
+if (process.env.NODE_ENV === 'development') {
+  PORT = process.env.PORT_HTTP || 3000;  // Puerto para desarrollo
+} else if (process.env.NODE_ENV === 'production') {
+  PORT = process.env.PORT_HTTPS || 443;  // Puerto para producción (puerto por defecto 443)
+}
+
+
 async function handleRegistrationRequest(userData) {
   try {
     // Buscar usuario por email
@@ -52,11 +63,21 @@ async function handleRegistrationRequest(userData) {
     throw new Error("Error al registrar usuario: " + error.message);
   }
 }
+function generateUnsubscribeLink(email) {
+  // Generar el token de desuscripción
+  const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+    expiresIn: "1h", // Expiración del token
+  });
+
+  // Crear el enlace real de desuscripción, con el dominio correcto (puede ser 'localhost' o el dominio en producción)
+  const unsubscribeLink = `http://${process.env.DOMAIN || "localhost"}:${PORT}/unsubscribe?email=${email}&token=${token}`;
+
+  return unsubscribeLink;
+}
 
 async function sendVerificationEmail(email, token) {
-  const verificationLink = `${process.env.BASE_URL}:${process.env.PORT}/verify-email?token=${token}`;
-  // const verificationLink = `http://localhost:${process.env.PORT}/verify-email?token=${token}`;
-  // const verificationLink = `${process.env.BASE_URL}/verify-email?token=${token}`;
+  const verificationLink = `${process.env.BASE_URL}:${PORT}/verify-email?token=${token}`;
+
   const unsubscribeLink = generateUnsubscribeLink(email);
 
   const transporter = nodemailer.createTransport({
@@ -283,9 +304,9 @@ async function sendEmailWithOptions(existingUser, newUserData) {
     { expiresIn: "1h" }
   );
 
-  // const optionsLink = `http://localhost:${process.env.PORT}/update-name?token=${token}&action=maintain`;
+ 
   const optionsLink = `${process.env.BASE_URL}/update-name?token=${token}&action=maintain`;
-  // const changeNameLink = `http://localhost:${process.env.PORT}/update-name?token=${token}&action=change&newName=${newUserData.name}`;
+
   const changeNameLink = `${process.env.BASE_URL}/update-name?token=${token}&action=change&newName=${newUserData.name}`;
 
   const mailOptions = {
@@ -429,17 +450,7 @@ async function updateNameService({ token, action, newName }) {
   }
 }
 
-function generateUnsubscribeLink(email) {
-  // Generar el token de desuscripción
-  const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-    expiresIn: "1h", // Expiración del token
-  });
 
-  // Crear el enlace real de desuscripción, con el dominio correcto (puede ser 'localhost' o el dominio en producción)
-  const unsubscribeLink = `http://${process.env.DOMAIN || "localhost"}:${process.env.PORT}/unsubscribe?email=${email}&token=${token}`;
-
-  return unsubscribeLink;
-}
 
 module.exports = {
   handleRegistrationRequest,
