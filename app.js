@@ -9,8 +9,8 @@ const connectToDatabase = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 
 const app = express();
-PORT_HTTP = process.env.PORT_HTTP; // Puerto para HTTP
-PORT_HTTPS = process.env.PORT_HTTPS; // Puerto para HTTPS
+const PORT_HTTP = 80; // Puerto para HTTP
+const PORT_HTTPS = 443; // Puerto para HTTPS
 const NODE_ENV = process.env.NODE_ENV || "development"; // Entorno de ejecución
 
 // Solo intentar cargar los certificados si estamos en producción
@@ -27,19 +27,14 @@ if (NODE_ENV === "production") {
   // Leer archivos de certificado y clave privada
   try {
     sslOptions = {
-      key: fs.readFileSync(
-        path.resolve(process.env.PRIVATE_KEY_FILE)
-      ),
-      cert: fs.readFileSync(
-        path.resolve(process.env.CERT_FILE)
-      ),
+      key: fs.readFileSync(path.resolve(__dirname, 'certs', 'private_key.key')),
+      cert: fs.readFileSync(path.resolve(__dirname, 'certs', 'cert_file.cer')),
     };
   } catch (error) {
     console.error("Error al cargar los certificados SSL:", error.message);
     throw new Error("No se pudieron cargar los certificados SSL.");
   }
 }
-
 
 // Middleware
 app.use(express.json());
@@ -51,7 +46,6 @@ app.use(
     contentSecurityPolicy: false, // Desactiva CSP si es necesario configurarlo manualmente
   })
 );
-
 // Configurar EJS como motor de plantillas
 app.set("view engine", "ejs");
 
@@ -97,13 +91,6 @@ if (NODE_ENV === "production") {
       `Servidor HTTP en desarrollo escuchando en el puerto ${PORT_HTTP}`
     );
   });
-}
-
-// Comportamiento según el entorno
-if (NODE_ENV === "production") {
-  console.log("Aplicación en producción");
-} else {
-  console.log("Aplicación en desarrollo");
 }
 
 module.exports = app;
