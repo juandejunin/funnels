@@ -5,13 +5,26 @@ const jwt = require("jsonwebtoken");
 
 
 let PORT;
-
+let unsubscribeLink = "" 
 if (process.env.NODE_ENV === 'development') {
   PORT = process.env.PORT_HTTP || 3000;  // Puerto para desarrollo
 } else if (process.env.NODE_ENV === 'production') {
   PORT = process.env.PORT_HTTPS || 443;  // Puerto para producción (puerto por defecto 443)
 }
 
+function generateUnsubscribeLink(email) {
+  // Generar el token de desuscripción
+  const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+    expiresIn: "1h", // Expiración del token
+  });
+
+  // Crear el enlace real de desuscripción, con el dominio correcto (puede ser 'localhost' o el dominio en producción)
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  let unsubscribeLink = `${protocol}://${process.env.DOMAIN || "localhost"}${process.env.NODE_ENV === 'production' ? '' : `:${PORT}`}/unsubscribe?email=${email}&token=${token}`;
+  
+
+  return unsubscribeLink;
+}
 
 async function handleRegistrationRequest(userData) {
   try {
@@ -63,22 +76,12 @@ async function handleRegistrationRequest(userData) {
     throw new Error("Error al registrar usuario: " + error.message);
   }
 }
-function generateUnsubscribeLink(email) {
-  // Generar el token de desuscripción
-  const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-    expiresIn: "1h", // Expiración del token
-  });
 
-  // Crear el enlace real de desuscripción, con el dominio correcto (puede ser 'localhost' o el dominio en producción)
-  const unsubscribeLink = `http://${process.env.DOMAIN || "localhost"}:${PORT}/unsubscribe?email=${email}&token=${token}`;
-
-  return unsubscribeLink;
-}
 
 async function sendVerificationEmail(email, token) {
   const verificationLink = `${process.env.BASE_URL}:${PORT}/verify-email?token=${token}`;
 
-  const unsubscribeLink = generateUnsubscribeLink(email);
+  let unsubscribeLink = generateUnsubscribeLink(email);
 
   const transporter = nodemailer.createTransport({
     service: "Gmail",
@@ -196,7 +199,7 @@ async function sendVerificationEmail(email, token) {
 }
 
 async function sendBookEmail(user) {
-  const unsubscribeLink = generateUnsubscribeLink(user.email);
+  let unsubscribeLink = generateUnsubscribeLink(user.email);
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
