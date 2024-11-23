@@ -1,18 +1,43 @@
-<!-- public/confirmation-success.html -->
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Confirmación Exitosa</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      margin: 0;
+    }
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      text-align: center;
+    }
+
+  </style>
 </head>
-<body class="bg-light d-flex justify-content-center align-items-center vh-100">
-  <div class="text-center">
+<body>
+  <div class="container">
     <h1 class="mb-4">¡Confirmación Exitosa!</h1>
     <p>Tu correo electrónico ha sido verificado correctamente.</p>
     <p>Hemos enviado un correo con el enlace para descargar tu libro en PDF.</p>
     <p>Por favor, revisa tu bandeja de entrada y sigue las instrucciones para descargar el libro.</p>
     <p>Si no ves el correo, revisa tu carpeta de spam o correo no deseado.</p>
   </div>
+
+  <!-- Bootstrap JS (optional for extra functionality) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
