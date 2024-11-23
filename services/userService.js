@@ -2,14 +2,12 @@ const User = require("../models/user");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 
-
-
 let PORT;
-let unsubscribeLink = "" 
-if (process.env.NODE_ENV === 'development') {
-  PORT = process.env.PORT_HTTP || 3000;  // Puerto para desarrollo
-} else if (process.env.NODE_ENV === 'production') {
-  PORT = process.env.PORT_HTTPS || 443;  // Puerto para producción (puerto por defecto 443)
+let unsubscribeLink = "";
+if (process.env.NODE_ENV === "development") {
+  PORT = process.env.PORT_HTTP || 3000; // Puerto para desarrollo
+} else if (process.env.NODE_ENV === "production") {
+  PORT = process.env.PORT_HTTPS || 443; // Puerto para producción (puerto por defecto 443)
 }
 
 function generateUnsubscribeLink(email) {
@@ -19,9 +17,10 @@ function generateUnsubscribeLink(email) {
   });
 
   // Crear el enlace real de desuscripción, con el dominio correcto (puede ser 'localhost' o el dominio en producción)
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  let unsubscribeLink = `${protocol}://${process.env.DOMAIN || "localhost"}${process.env.NODE_ENV === 'production' ? '' : `:${PORT}`}/unsubscribe?email=${email}&token=${token}`;
-  
+  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  let unsubscribeLink = `${protocol}://${process.env.DOMAIN || "localhost"}${
+    process.env.NODE_ENV === "production" ? "" : `:${PORT}`
+  }/unsubscribe?email=${email}&token=${token}`;
 
   return unsubscribeLink;
 }
@@ -38,7 +37,11 @@ async function handleRegistrationRequest(userData) {
 
         if (!token) {
           // Generar un nuevo token si no existe
-          token = jwt.sign({ email: existingUser.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+          token = jwt.sign(
+            { email: existingUser.email },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+          );
           existingUser.verificationToken = token;
           await existingUser.save();
         }
@@ -61,7 +64,9 @@ async function handleRegistrationRequest(userData) {
     }
 
     // Crear un nuevo usuario si no existe
-    const token = jwt.sign({ email: userData.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ email: userData.email }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
 
     const newUser = new User({
       name: userData.name,
@@ -76,7 +81,6 @@ async function handleRegistrationRequest(userData) {
     throw new Error("Error al registrar usuario: " + error.message);
   }
 }
-
 
 async function sendVerificationEmail(email, token) {
   const verificationLink = `${process.env.BASE_URL}:${PORT}/verify-email?token=${token}`;
@@ -288,6 +292,7 @@ async function sendBookEmail(user) {
 }
 
 async function sendEmailWithOptions(existingUser, newUserData) {
+  let unsubscribeLink = generateUnsubscribeLink(existingUser.email);
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
@@ -307,7 +312,6 @@ async function sendEmailWithOptions(existingUser, newUserData) {
     { expiresIn: "1h" }
   );
 
- 
   const optionsLink = `${process.env.BASE_URL}/update-name?token=${token}&action=maintain`;
 
   const changeNameLink = `${process.env.BASE_URL}/update-name?token=${token}&action=change&newName=${newUserData.name}`;
@@ -409,7 +413,7 @@ async function sendEmailWithOptions(existingUser, newUserData) {
             </div>
 
             <div class="unsubscribe">
-              <p><a href="${unsubscribeLink}">Darse de baja</a></p>
+              <p><a href="${unsubscribeLink}">Darse de baja sendeEmail</a></p>
             </div>
           </div>
         </body>
@@ -452,8 +456,6 @@ async function updateNameService({ token, action, newName }) {
     throw new Error(error.message);
   }
 }
-
-
 
 module.exports = {
   handleRegistrationRequest,
