@@ -18,9 +18,10 @@ function generateUnsubscribeLink(email) {
 
   // Crear el enlace real de desuscripción, con el dominio correcto (puede ser 'localhost' o el dominio en producción)
   const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-  let unsubscribeLink = `${protocol}://${process.env.DOMAIN || "localhost"}${
+  let unsubscribeLink = `${protocol}://${process.env.BASE_URL}${
     process.env.NODE_ENV === "production" ? "" : `:${PORT}`
   }/unsubscribe?email=${email}&token=${token}`;
+  
 
   return unsubscribeLink;
 }
@@ -83,8 +84,12 @@ async function handleRegistrationRequest(userData) {
 }
 
 async function sendVerificationEmail(email, token) {
-  const verificationLink = `${process.env.BASE_URL}:${PORT}/verify-email?token=${token}`;
+  // const verificationLink = `${process.env.BASE_URL}:${PORT}/verify-email?token=${token}`;
 
+  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+let verificationLink = `${protocol}://${process.env.BASE_URL}${
+  process.env.NODE_ENV === "production" ? "" : `:${PORT}`
+}/verify-email?token=${token}`;
   let unsubscribeLink = generateUnsubscribeLink(email);
 
   const transporter = nodemailer.createTransport({
@@ -413,7 +418,7 @@ async function sendEmailWithOptions(existingUser, newUserData) {
             </div>
 
             <div class="unsubscribe">
-              <p><a href="${unsubscribeLink}">Darse de baja sendeEmail</a></p>
+              <p><a href="${unsubscribeLink}">Darse de baja</a></p>
             </div>
           </div>
         </body>
