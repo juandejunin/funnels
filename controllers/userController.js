@@ -152,7 +152,7 @@ async function unsubscribeUser(req, res) {
 
     if (user) {
       console.log("Usuario eliminado exitosamente:", email);
-      return res.send("Usuario dado de baja exitosamente.");
+      res.redirect("/unsubscribe-user.html");
     } else {
       console.log("Usuario no encontrado:", email);
       return res.status(404).send("Usuario no encontrado.");
