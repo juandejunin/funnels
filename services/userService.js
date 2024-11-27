@@ -1,6 +1,8 @@
 const User = require("../models/user");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
+const ejs = require("ejs");
+const path = require("path");
 
 let PORT;
 let unsubscribeLink = "";
@@ -21,7 +23,6 @@ function generateUnsubscribeLink(email) {
   let unsubscribeLink = `${protocol}://${process.env.BASE_URL}${
     process.env.NODE_ENV === "production" ? "" : `:${PORT}`
   }/unsubscribe?email=${email}&token=${token}`;
-  
 
   return unsubscribeLink;
 }
@@ -84,122 +85,47 @@ async function handleRegistrationRequest(userData) {
 }
 
 async function sendVerificationEmail(email, token) {
-  // const verificationLink = `${process.env.BASE_URL}:${PORT}/verify-email?token=${token}`;
-
   const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-let verificationLink = `${protocol}://${process.env.BASE_URL}${
-  process.env.NODE_ENV === "production" ? "" : `:${PORT}`
-}/verify-email?token=${token}`;
+  const baseURL = process.env.BASE_URL || "localhost";
+  const port =
+    process.env.NODE_ENV === "production" ? "" : `:${process.env.PORT || 80}`;
+
+  // Generar enlaces con protocolo dinámico
+  const verificationLink = `${protocol}://${baseURL}${port}/verify-email?token=${token}`;
+
   let unsubscribeLink = generateUnsubscribeLink(email);
-
-  const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Verifica tu correo para recibir el libro gratuito",
-    html: `
-      <html>
-        <head>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              background-color: #f4f4f4;
-              color: #333;
-              padding: 20px;
-            }
-            .container {
-              background-color: white;
-              padding: 30px;
-              border-radius: 10px;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-              max-width: 600px;
-              margin: auto;
-            }
-            h1 {
-              color: #4CAF50;
-              text-align: center;
-            }
-            p {
-              font-size: 16px;
-              line-height: 1.5;
-              margin-bottom: 20px;
-            }
-            .message-box {
-              background-color: #f9f9f9;
-              padding: 20px;
-              border-radius: 10px;
-              border: 1px solid #ddd;
-              margin-bottom: 20px;
-              text-align: center;
-            }
-            .button {
-              display: inline-block;
-              background-color: #4CAF50;
-              color: white;
-              padding: 10px 20px;
-              font-size: 16px;
-              text-decoration: none;
-              border-radius: 5px;
-              text-align: center;
-              transition: background-color 0.3s;
-              margin-top: 20px;
-            }
-            .button:hover {
-              background-color: #45a049;
-            }
-            .footer {
-              text-align: center;
-              font-size: 12px;
-              color: #888;
-              margin-top: 20px;
-            }
-            .unsubscribe {
-              font-size: 12px;
-              color: #888;
-              text-align: center;
-              margin-top: 20px;
-            }
-            .unsubscribe a {
-              color: #888;
-              text-decoration: none;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>¡Bienvenido!</h1>
-            
-            <div class="message-box">
-              <p>Por favor, haz clic en el siguiente enlace para verificar tu correo:</p>
-              <p style="text-align: center;">
-                <a href="${verificationLink}" class="button">Verificar mi correo</a>
-              </p>
-            </div>
-
-            <p>Si no solicitaste este libro, por favor ignora este correo.</p>
-            <p>¡Gracias por tu interés!</p>
-
-            <div class="footer">
-              <p>Saludos,<br>El equipo de soporte</p>
-            </div>
-
-            <div class="unsubscribe">
-              <p><a href="${unsubscribeLink}">Darse de baja</a></p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `,
-  };
-
+  // Ruta de la plantilla EJS
+  const templatePath = path.join(
+    __dirname,
+    "..",
+    "templates",
+    "emailTemplate.ejs"
+  );
   try {
+    // Cargar y renderizar la plantilla EJS
+    const htmlContent = await ejs.renderFile(templatePath, {
+      verificationLink,
+      unsubscribeLink,
+    });
+
+    // Configurar transporte de correo
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Opciones del correo
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Verifica tu correo para recibir el libro gratuito",
+      html: htmlContent,
+    };
+
+    // Enviar correo
     await transporter.sendMail(mailOptions);
     console.log("Correo de verificación enviado a:", email);
   } catch (error) {
@@ -208,7 +134,22 @@ let verificationLink = `${protocol}://${process.env.BASE_URL}${
 }
 
 async function sendBookEmail(user) {
+  // Generar enlace de cancelación de suscripción
   let unsubscribeLink = generateUnsubscribeLink(user.email);
+
+  // Cargar y renderizar la plantilla EJS
+  const templatePath = path.join(
+    __dirname,
+    "..",
+    "templates",
+    "bookEmailTemplate.ejs"
+  );
+
+  const htmlContent = await ejs.renderFile(templatePath, {
+    unsubscribeLink,
+  });
+
+  // Crear un transportador para Nodemailer
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
@@ -217,87 +158,34 @@ async function sendBookEmail(user) {
     },
   });
 
+  // Configuración del correo
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: user.email,
     subject: "Tu libro gratuito Aprendizaje Typescript",
-    text: "Gracias por verificar tu correo. ¡Aquí está tu libro electrónico gratuito creado a partir de contribuyentes de Stack Overflow !",
+    text: "Gracias por verificar tu correo. ¡Aquí está tu libro electrónico gratuito creado a partir de contribuyentes de Stack Overflow!",
     attachments: [
       {
         filename: "book.pdf",
         path: "./typescript-es.pdf", // Asegúrate de que la ruta sea correcta
       },
     ],
-    html: `
-      <html>
-        <head>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              background-color: #f4f4f4;
-              color: #333;
-              padding: 20px;
-            }
-            .container {
-              background-color: white;
-              padding: 30px;
-              border-radius: 10px;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-              max-width: 600px;
-              margin: auto;
-            }
-            h1 {
-              color: #4CAF50;
-              text-align: center;
-            }
-            p {
-              font-size: 16px;
-              line-height: 1.5;
-              margin-bottom: 20px;
-            }
-            .footer {
-              text-align: center;
-              font-size: 12px;
-              color: #888;
-              margin-top: 20px;
-            }
-            .unsubscribe {
-              font-size: 12px;
-              color: #888;
-              text-align: center;
-              margin-top: 20px;
-            }
-            .unsubscribe a {
-              color: #888;
-              text-decoration: none;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>¡Tu libro gratuito está listo!</h1>
-            <p>Gracias por verificar tu correo. Aquí tienes tu libro en PDF, ¡esperamos que lo disfrutes!</p>
-            <p>Si tienes algún problema descargando el archivo, no dudes en contactarnos.</p>
-            <p>¡Gracias por tu interés!</p>
-
-            <div class="footer">
-              <p>Saludos,<br>El equipo de soporte</p>
-            </div>
-
-            <div class="unsubscribe">
-              <p><a href="${unsubscribeLink}">Darse de baja</a></p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `,
+    html: htmlContent,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    // Enviar el correo
+    await transporter.sendMail(mailOptions);
+    console.log("Correo de libro enviado a:", user.email);
+  } catch (error) {
+    console.error("Error al enviar el correo:", error);
+  }
 }
 
 async function sendEmailWithOptions(existingUser, newUserData) {
   let unsubscribeLink = generateUnsubscribeLink(existingUser.email);
+
+  // Crear un transportador para Nodemailer
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
@@ -318,115 +206,41 @@ async function sendEmailWithOptions(existingUser, newUserData) {
   );
 
   const optionsLink = `${process.env.BASE_URL}/update-name?token=${token}&action=maintain`;
-
   const changeNameLink = `${process.env.BASE_URL}/update-name?token=${token}&action=change&newName=${newUserData.name}`;
 
+  // Cargar y renderizar la plantilla EJS
+  const templatePath = path.join(
+    __dirname,
+    "..",
+    "templates",
+    "updateNameEmailTemplate.ejs"
+  );
+  const htmlContent = await ejs.renderFile(templatePath, {
+    existingUserName: existingUser.name,
+    newName: newUserData.name,
+    optionsLink,
+    changeNameLink,
+    unsubscribeLink,
+  });
+
+  // Configuración del correo
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: existingUser.email,
     subject: "Ya estás registrado, ¿quieres actualizar tu nombre?",
-    html: `
-      <html>
-        <head>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              background-color: #f4f4f4;
-              color: #333;
-              padding: 20px;
-            }
-            .container {
-              background-color: white;
-              padding: 30px;
-              border-radius: 10px;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-              max-width: 600px;
-              margin: auto;
-            }
-            h1 {
-              color: #4CAF50;
-              text-align: center;
-            }
-            p {
-              font-size: 16px;
-              line-height: 1.5;
-              margin-bottom: 20px;
-            }
-            .button {
-              display: inline-block;
-              background-color: #4CAF50;
-              color: white;
-              padding: 10px 20px;
-              font-size: 16px;
-              text-decoration: none;
-              border-radius: 5px;
-              text-align: center;
-              margin-bottom: 10px;
-              transition: background-color 0.3s;
-            }
-            .button:hover {
-              background-color: #45a049;
-            }
-            .info-box {
-              background-color: #f9f9f9;
-              border: 1px solid #ddd;
-              padding: 20px;
-              border-radius: 8px;
-              margin-bottom: 20px;
-            }
-            .info-box p {
-              text-align: center;
-              font-size: 16px;
-            }
-            .footer {
-              text-align: center;
-              font-size: 12px;
-              color: #888;
-              margin-top: 20px;
-            }
-            .unsubscribe {
-              font-size: 12px;
-              color: #888;
-              text-align: center;
-              margin-top: 20px;
-            }
-            .unsubscribe a {
-              color: #888;
-              text-decoration: none;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="info-box">
-              <h1>¡Hola ${existingUser.name}!</h1>
-              <p>Ya tenemos un registro con tu correo electrónico. Por favor, elige una de las siguientes opciones:</p>
-
-              <p>
-                <a href="${optionsLink}" class="button">Mantener mi nombre actual: ${existingUser.name}</a>
-              </p>
-              <p>
-                <a href="${changeNameLink}" class="button">Cambiar mi nombre a: ${newUserData.name}</a>
-              </p>
-
-              <p>Si tienes alguna duda, no dudes en ponerte en contacto con nosotros.</p>
-              <p>¡Gracias por tu interés!</p>
-            </div>
-
-            <div class="footer">
-              <p>Saludos,<br>El equipo de soporte</p>
-            </div>
-
-            <div class="unsubscribe">
-              <p><a href="${unsubscribeLink}">Darse de baja</a></p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `,
+    html: htmlContent,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    // Enviar el correo
+    await transporter.sendMail(mailOptions);
+    console.log(
+      "Correo de actualización de nombre enviado a:",
+      existingUser.email
+    );
+  } catch (error) {
+    console.error("Error al enviar el correo:", error);
+  }
 }
 
 async function updateNameService({ token, action, newName }) {
