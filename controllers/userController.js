@@ -52,8 +52,7 @@ const updateName = async (req, res) => {
   const { token, action, newName } = req.query;
 
   try {
-    const result = await updateNameService({ token, action, newName });
-
+    
     if (action === "maintain") {
       res.redirect("/keep-name-success.html"); // Redirige a mantener nombre
     } else if (action === "change") {
