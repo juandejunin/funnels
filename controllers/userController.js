@@ -49,7 +49,7 @@ async function registerUser(req, res) {
 }
 
 const updateName = async (req, res) => {
-  const { token, action, newName } = req.query;
+  const { action } = req.query;
 
   try {
     
