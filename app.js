@@ -47,6 +47,12 @@ app.use(
 );
 app.set("view engine", "ejs");
 
+// Configuración de seguridad adicional (HSTS)
+app.use((req, res, next) => {
+  res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  next();
+});
+
 // Conectar a la base de datos
 connectToDatabase()
   .then(() => {
@@ -69,37 +75,24 @@ app.get("/health", (req, res) => {
 app.get("/redirect", (req, res) => {
   const url = req.query.url;
 
-  // Validar que la URL exista
   if (!url) {
     return res.status(400).json({ error: "URL es requerida" });
   }
 
   try {
-    // Crear un objeto URL para analizar la URL proporcionada
     const parsedUrl = new URL(url);
+    const allowedOrigins = ["http://localhost", "https://tusistema.es"];
 
-    // Validar según el entorno
-    const isDevelopment = NODE_ENV === "development";
-
-    if (isDevelopment) {
-      // En desarrollo: permitir localhost
-      if (parsedUrl.origin === "http://localhost") {
-        return res.redirect(url);
-      } else {
-        return res.status(403).json({ error: "Redirección no permitida en desarrollo" });
-      }
-    } else {
-      // En producción: redirigir a HTTPS si la URL es http://tusistema.es
-      if (parsedUrl.origin === "http://tusistema.es") {
-        return res.redirect(`https://tusistema.es${parsedUrl.pathname}${parsedUrl.search}`);
-      } else if (parsedUrl.origin === "https://tusistema.es") {
-        return res.redirect(url);
-      } else {
-        return res.status(403).json({ error: "Redirección no permitida en producción" });
-      }
+    if (!allowedOrigins.includes(parsedUrl.origin)) {
+      return res.status(403).json({ error: "Origen no permitido" });
     }
+
+    if (parsedUrl.protocol === "http:" && parsedUrl.origin === "http://tusistema.es") {
+      return res.redirect(`https://tusistema.es${parsedUrl.pathname}${parsedUrl.search}`);
+    }
+
+    res.redirect(url);
   } catch (error) {
-    // Manejo de errores si la URL es inválida
     return res.status(400).json({ error: "URL inválida" });
   }
 });
