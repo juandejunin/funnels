@@ -9,13 +9,12 @@ const connectToDatabase = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 
 const app = express();
-const PORT_HTTP = process.env.PORT_HTTP || 3000; // Puerto para HTTP
+const PORT_HTTP = process.env.PORT_HTTP || 80; // Puerto para HTTP (en desarrollo o producción)
 const PORT_HTTPS = process.env.PORT_HTTPS || 443; // Puerto para HTTPS
 const NODE_ENV = process.env.NODE_ENV || "development"; // Entorno de ejecución
 
 // Configuración para SSL (solo en producción)
 let sslOptions = {};
-
 if (NODE_ENV === "production") {
   // Verificar certificados en producción
   if (!process.env.PRIVATE_KEY_FILE || !process.env.CERT_FILE) {
@@ -23,7 +22,6 @@ if (NODE_ENV === "production") {
       "PRIVATE_KEY_FILE o CERT_FILE no están definidas en las variables de entorno"
     );
   }
-
   // Cargar certificados SSL
   try {
     sslOptions = {
@@ -116,7 +114,7 @@ if (NODE_ENV === "production") {
     console.log(`Servidor HTTPS escuchando en el puerto ${PORT_HTTPS}`);
   });
 } else {
-  // Servidor HTTP en desarrollo
+  // Servidor HTTP en desarrollo en el puerto 80
   app.listen(PORT_HTTP, () => {
     console.log(
       `Servidor HTTP en desarrollo escuchando en el puerto ${PORT_HTTP}`
